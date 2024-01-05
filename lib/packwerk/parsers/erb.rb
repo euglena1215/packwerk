@@ -11,7 +11,10 @@ module Packwerk
     class Erb
       extend T::Sig
 
-      include ParserInterface
+      include Packwerk::FileParser
+
+      ERB_REGEX = /\.erb\Z/
+      private_constant :ERB_REGEX
 
       sig { params(parser_class: T.untyped, ruby_parser: Ruby).void }
       def initialize(parser_class: BetterHtml::Parser, ruby_parser: Ruby.new)
@@ -38,6 +41,11 @@ module Packwerk
         raise Parsers::ParseError, result
       end
 
+      sig { override.params(path: String).returns(T::Boolean) }
+      def match?(path:)
+        ERB_REGEX.match?(path)
+      end
+
       private
 
       sig do
@@ -57,14 +65,14 @@ module Packwerk
         @ruby_parser.call(
           io: StringIO.new(code_pieces.join("\n")),
           file_path: file_path,
-        )
+          )
       end
 
       sig do
         params(
           node: T.any(::AST::Node, String, NilClass),
           block: T.nilable(T.proc.params(arg0: ::AST::Node).void),
-        ).returns(
+          ).returns(
           T.any(T::Enumerator[::AST::Node], T::Array[String], NilClass)
         )
       end
