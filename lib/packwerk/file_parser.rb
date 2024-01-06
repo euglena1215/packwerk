@@ -19,6 +19,9 @@ module Packwerk
 
     sig { returns(T::Array[FileParser]) }
     def self.all
+      # Require each parser class in advance because it cannot be obtained unless it is required.
+      Dir[File.join(__dir__, "parsers", "*.rb")].each { |file| require file }
+
       T.unsafe(@parsers).map(&:new)
     end
 
